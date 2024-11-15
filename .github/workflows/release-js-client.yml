@@ -17,14 +17,12 @@ jobs:
         with:
           node-version: 'lts/*'
           registry-url: 'https://npm.pkg.github.com'
-          # Defaults to the user or organization that owns the workflow file
-          scope: '@octocat'
       - uses: pnpm/action-setup@v2
       - name: Install dependencies
         run: pnpm install
       - name: Build
         run: pnpm build
       - name: Release
-        run: npm publish
+        run: cd packages/js-client && npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
