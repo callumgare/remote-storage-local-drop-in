@@ -35,6 +35,7 @@ FROM node:18.13.0-bullseye As production-build
 
 RUN apt-get update
 RUN apt-get install -y openssl
+RUN npm install -g pnpm@latest
 
 WORKDIR /app
 
@@ -53,8 +54,7 @@ RUN pnpm run build
 
 ENV NODE_ENV production
 
-# Running `pnpm ci` removes the existing node_modules directory and passing in --only=production ensures that only the production dependencies are installed. This ensures that the node_modules directory is as optimized as possible
-RUN pnpm ci --only=production && pnpm cache clean --force
+RUN pnpm install && pnpm cache clean
 
 ###################
 # PRODUCTION RUN
