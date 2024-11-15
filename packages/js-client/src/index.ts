@@ -1,6 +1,7 @@
-export { RemoteStorage } from './core/remote-storage'
+export { RemoteStorage, RemoteStorageLocalDropIn } from './core/remote-storage'
 export * from './core/constants'
 
-import { RemoteStorage } from './core/remote-storage'
+import { RemoteStorage, RemoteStorageLocalDropIn } from './core/remote-storage'
 
 globalThis.RemoteStorage = RemoteStorage
+globalThis.RemoteStorageLocalDropIn = RemoteStorageLocalDropIn

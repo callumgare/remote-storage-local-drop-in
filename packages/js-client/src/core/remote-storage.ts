@@ -107,3 +107,78 @@ export class RemoteStorage {
     return userId
   }
 }
+
+export class RemoteStorageLocalDropIn {
+  private readonly serverAddress: string
+  private readonly instanceId: string
+  private readonly userId: string
+
+  constructor(config?: RemoteStorageConfig) {
+    const { serverAddress, instanceId, userId } = config ?? {}
+    this.serverAddress = serverAddress ?? 'https://api.remote.storage'
+    this.instanceId = instanceId ?? 'default'
+    this.userId = userId ?? this.getUserId()
+  }
+
+  /**
+   * Get an item from remote storage
+   * @param key the key that corresponds to the item to get
+   * @param fetchOptions optional fetch options to pass to the underlying fetch call. Currently only headers for authorization are supported.
+   */
+  getItem(key: string, fetchOptions?: any): string {
+    const response = this.call('GET', `${apiPrefix}${key}`, fetchOptions, null)
+    // Check for 404 and return null if so
+    if (response.status === 404) {
+      return null
+    }
+    const data = response.responseText
+    return data
+  }
+
+  /**
+   * Set an item in remote storage
+   * @param key the key that corresponds to the item to set
+   * @param value the value to set
+   * @param fetchOptions optional fetch options to pass to the underlying fetch call. Currently only headers for authorization are supported.
+   */
+  setItem<T>(key: string, value: T, fetchOptions?: any): void {
+    this.call('PUT', `${apiPrefix}${key}`, fetchOptions, value)
+  }
+
+  /**
+   * Remove an item from remote storage
+   * @param key the key that corresponds to the item to remove
+   * @param fetchOptions optional fetch options to pass to the underlying fetch call. Currently only headers for authorization are supported.
+   */
+  removeItem(key: string, fetchOptions?: any): void {
+    this.call('DELETE', `${apiPrefix}${key}`, fetchOptions, null)
+  }
+
+  call(method: string, path: string, options?: any, data?: any) {
+    const request = new XMLHttpRequest();
+    request.open(method, new URL(path, this.serverAddress).toString(), false); // `false` makes the request synchronous
+    request.setRequestHeader('Content-Type', 'application/json')
+    request.setRequestHeader(HEADER_REMOTE_STORAGE_INSTANCE_ID, this.instanceId)
+    request.setRequestHeader(HEADER_REMOTE_STORAGE_USER_ID, this.userId)
+    for (const [key, value] of options?.headers || []) {
+      request.setRequestHeader(key, value)
+    }
+    request.send(data ? JSON.stringify(data) : null);
+    
+    return request
+  }
+
+  private getUserId(): string | null {
+    const key = `rs-user-id`
+    if (isWeb()) {
+      if (window.localStorage.getItem(key)) {
+        return window.localStorage.getItem(key)
+      }
+    }
+    const userId = uuid()
+    if (isWeb()) {
+      window.localStorage.setItem(key, userId)
+    }
+    return userId
+  }
+}
